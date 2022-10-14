@@ -12,9 +12,10 @@ import uuid from 'react-native-uuid';
 import { AuthContext } from '../context/AuthContext';
 import Menu from '../components/Menu';
 import UserCard from '../components/UserCard';
-import PipHandler, { usePipModeListener } from 'react-native-pip-android';
+// import PipHandler, { usePipModeListener } from 'react-native-pip-android';
 export default function CreateCall({ navigation, route }) {
-    const [inPipMode, setInPipMode] = useState(usePipModeListener())
+    // const [inPipMode, setInPipMode] = useState(usePipModeListener())
+    const [inPipMode, setInPipMode] = useState(false)
     const { theme, setActiveRoom } = useContext(AuthContext)
     const [user, setUser] = useState(route.params.user);
     const [action, setAction] = useState(route.params.action);
@@ -39,8 +40,8 @@ export default function CreateCall({ navigation, route }) {
 
 
     const startPip = () => {
-        setInPipMode(true)
-        PipHandler.enterPipMode(300, 214)
+        // setInPipMode(true)
+        // PipHandler.enterPipMode(300, 214)
     }
 
     useEffect(() => {

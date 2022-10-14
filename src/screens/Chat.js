@@ -7,17 +7,23 @@ import { db } from "../config/firebase-config";
 import { doc, collection, addDoc, setDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, deleteField, deleteDoc } from "firebase/firestore";
 import uuid from 'react-native-uuid';
 import LinearGradient from 'react-native-linear-gradient';
-
+var limit = 15
+var skip = 0;
 export default function Chat({ route }) {
     const [roomId, setRoomId] = useState(route.params.roomId)
     const [data, setData] = useState([])
     const [msg, setMsg] = useState('')
     const [loading, setLoading] = useState(true)
     const { theme, currentUser, darkModeEnabled } = useContext(AuthContext)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [dataEnd, setDataEnd] = useState(false)
+    // temperory
+    const [slicedData, setSlicedData] = useState([])
     useEffect(() => {
         var unsub = onSnapshot(doc(db, 'chatRoom', roomId), (doc) => {
             if (doc.exists()) {
-                setData(Object.values(doc.data()))
+                setData(Object.values(doc.data())?.sort((a, b) => b?.date - a?.date))
+                setSlicedData(Object.values(doc.data())?.sort((a, b) => b?.date - a?.date)?.slice(skip, limit))
             }
             setLoading(false)
         });
@@ -54,7 +60,26 @@ export default function Chat({ route }) {
         }
     }
 
-
+    const loadMore = async () => {
+        if (!dataEnd) {
+            if (!loadingMore) {
+                setLoadingMore(true)
+                if (data.length == slicedData.length) {
+                    setDataEnd(true)
+                } else {
+                    setDataEnd(false)
+                    skip = limit
+                    limit = limit + skip
+                    await setSlicedData([...slicedData, ...data.slice(skip, limit)]);
+                    await setLoadingMore(false)
+                }
+            }
+        } else {
+            skip = 0
+            limit = 15
+            console.log("ends", data.length == slicedData.length);
+        }
+    }
     const renderItem = ({ item }) => (
         <View style={styles.msgBox}>
             <Text style={{ fontWeight: "bold", fontSize: 15, color: theme.colors.textColor }}>{item.name}</Text>
@@ -72,10 +97,18 @@ export default function Chat({ route }) {
                         </View>
                     ) : (
                         <FlatList
+                            ListFooterComponent={() => {
+                                if (loadingMore) {
+                                    <ActivityIndicator color={theme.colors.textColor} size={30} style={{ padding: 10, alignSelf: "center" }} />
+                                }
+                                return null
+                            }}
+                            keyExtractor={(item, index) => index}
                             style={styles.messageContainer}
                             showsVerticalScrollIndicator={false}
                             inverted={true}
-                            data={data}
+                            onEndReached={loadMore}
+                            data={slicedData}
                             renderItem={renderItem}
                         />)
                 }

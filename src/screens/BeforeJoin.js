@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect, useRef } from 'react'
 import { SPACING } from '../config/constants'
 import { AuthContext } from '../context/AuthContext'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
+import { Camera, useCameraDevices } from 'react-native-vision-camera'
 
 var t;
 export default function BeforeJoin({ route, navigation }) {
@@ -12,8 +13,27 @@ export default function BeforeJoin({ route, navigation }) {
     const [mic, setMic] = useState(true)
     const [isSigninInProgress, setIsSigninInProgress] = useState(false)
     const [video, setVideo] = useState(true)
+    const [front, setFront] = useState(true)
     const { currentUser, theme, setCurrentUser } = useContext(AuthContext)
-    t = theme;
+
+    const devices = useCameraDevices()
+    const device = front ? devices.front : devices.back
+
+    const cameraRef = useRef(null)
+    const switchCamera = () => {
+        setFront(p => !p)
+    }
+    const askCamerPermision = async () => {
+        const newCameraPermission = await Camera.requestCameraPermission()
+        if (newCameraPermission == "authorized") {
+            setVideo(true)
+        } else {
+            setVideo(false)
+        }
+    }
+    useEffect(() => {
+        askCamerPermision()
+    }, [])
     const join = () => {
         if (roomId) {
             const user = {
@@ -65,7 +85,17 @@ export default function BeforeJoin({ route, navigation }) {
                 {
                     video ? (
                         <View style={styles.videoContainer}>
-                            {/* video here */}
+                            {
+                                device && (
+                                    <Camera
+                                        style={StyleSheet.absoluteFill}
+                                        device={device}
+                                        isActive={true}
+                                        ref={cameraRef}
+
+                                    />
+                                )
+                            }
                         </View>
                     ) : (
                         <View style={[styles.videoContainer, { backgroundColor: "#202020" }]}>
@@ -80,9 +110,10 @@ export default function BeforeJoin({ route, navigation }) {
                     <TouchableOpacity onPress={() => { setVideo(!video) }} style={[styles.btn, { borderColor: theme.colors.textColor, }]}>
                         <Icon name={video ? 'videocam' : 'videocam-off'} size={25} color={theme.colors.textColor} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.btn, { borderColor: theme.colors.textColor, }]}>
+                    <TouchableOpacity onPress={switchCamera} disabled={!video} style={[styles.btn, { borderColor: theme.colors.textColor, opacity: video ? 1 : 0.4 }]}>
                         <Icon name='camera' size={25} color={theme.colors.textColor} />
                     </TouchableOpacity>
+
                 </View>
                 <TouchableOpacity onPress={join} style={styles.joinBtn}>
                     <Text style={{ color: "#fff" }}>Join Now</Text>
@@ -113,7 +144,8 @@ const styles = StyleSheet.create({
         backgroundColor: "black",
         borderRadius: 10,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        overflow: "hidden"
     },
     btnContainer: {
         flexDirection: "row",
@@ -131,7 +163,6 @@ const styles = StyleSheet.create({
     },
     room: {
         marginVertical: 15,
-        color: t?.colors.textColor,
         fontSize: 16
     },
     joinBtn: {

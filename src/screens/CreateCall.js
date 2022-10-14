@@ -247,13 +247,9 @@ export default function CreateCall({ navigation, route }) {
             navigation.navigate("Home")
             if (roomId) {
                 const roomRef = doc(db, 'rooms', roomId);
-                // if (participants.length === 1) {
-                //     await deleteDoc(roomRef)
-                // } else {
                 await updateDoc(roomRef, {
                     [user.uid]: deleteField()
                 })
-                // }
             }
 
         } catch (error) {

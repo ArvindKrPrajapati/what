@@ -10,7 +10,8 @@ export default function JoinCall({ navigation }) {
     const [room, setRoom] = useState(null)
     const join = () => {
         if (room) {
-            navigation.navigate("BeforeJoin", { room })
+            const r = room.trim()
+            navigation.navigate("BeforeJoin", { room: r })
         }
     }
     return (

@@ -5,20 +5,26 @@ import { SPACING } from '../config/constants';
 import { AuthContext } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { deleteField, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../config/firebase-config';
 
 export default function Home({ navigation }) {
-    let { active, currentUser, theme } = useContext(AuthContext)
-    const [roomId, setRoomId] = useState(active)
+    let { activeRoom, setActiveRoom, currentUser, theme } = useContext(AuthContext)
+    const [roomId, setRoomId] = useState(activeRoom?.roomId)
     useEffect(() => {
-        console.log(roomId);
-        setRoomId(active)
-    }, [active])
+        setRoomId(activeRoom?.roomId)
+    }, [activeRoom?.roomId])
     const leaveRoom = async () => {
         setRoomId("")
-        await AsyncStorage.removeItem("roomId")
+        setActiveRoom({})
+        await AsyncStorage.removeItem("activeRoom")
+        const roomRef = doc(db, 'rooms', activeRoom.roomId);
+        await updateDoc(roomRef, {
+            [activeRoom.uid]: deleteField()
+        })
     }
     const joinRoom = () => {
-        navigation.replace("CreateCall", { action: "join", user: currentUser, room: active })
+        navigation.replace("CreateCall", { action: "rejoin", user: currentUser, room: activeRoom.roomId, activeRoom })
     }
 
     const createCall = () => {
@@ -51,7 +57,7 @@ export default function Home({ navigation }) {
                         <View style={{ alignItems: "center", justifyContent: "space-between", padding: 15, flexDirection: "row", marginVertical: 40, borderRadius: 5 }}>
                             <View>
                                 <Text style={{ color: theme.colors.textColor, fontSize: 16, fontWeight: "700" }}>Active Room</Text>
-                                <Text style={{ color: theme.colors.textColor, fontSize: 16 }}>{active}</Text>
+                                <Text style={{ color: theme.colors.textColor, fontSize: 16 }}>{activeRoom?.roomId}</Text>
                             </View>
                             <View style={{ flexDirection: "row", alignItems: "center" }}>
                                 <TouchableOpacity onPress={joinRoom} style={[styles.smallBtn, { backgroundColor: 'green' }]}>

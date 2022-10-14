@@ -15,7 +15,7 @@ import UserCard from '../components/UserCard';
 import PipHandler, { usePipModeListener } from 'react-native-pip-android';
 export default function CreateCall({ navigation, route }) {
     const [inPipMode, setInPipMode] = useState(usePipModeListener())
-    const { theme, setActiveRoomId } = useContext(AuthContext)
+    const { theme, setActiveRoom } = useContext(AuthContext)
     const [user, setUser] = useState(route.params.user);
     const [action, setAction] = useState(route.params.action);
     const [notFound, setNotFound] = useState(false)
@@ -83,8 +83,9 @@ export default function CreateCall({ navigation, route }) {
                 await updateDoc(roomRef, {
                     [uid]: data
                 })
-                setActiveRoomId(roomId)
-                await AsyncStorage.setItem("roomId", roomId)
+                setActiveRoom({ ...data, roomId })
+                setAction("ok")
+                await AsyncStorage.setItem("activeRoom", JSON.stringify({ ...data, roomId }))
             } else {
                 setNotFound(true)
             }
@@ -104,8 +105,9 @@ export default function CreateCall({ navigation, route }) {
                 [uid]: data
             })
             setRoomId(res.id)
-            setActiveRoomId(res.id)
-            await AsyncStorage.setItem("roomId", res.id)
+            setAction("ok")
+            setActiveRoom({ ...data, roomId: res.id })
+            await AsyncStorage.setItem("activeRoom", JSON.stringify({ ...data, roomId: res.id }))
             setLoading(false)
             setParticipants([data])
         } catch (error) {
@@ -113,15 +115,55 @@ export default function CreateCall({ navigation, route }) {
         }
     }
 
-    useEffect(() => {
-        if (action == "join") {
-            join();
-        } else if (action == "create") {
-            if (!roomId) {
-                createRoom();
+    const rejoin = async () => {
+        const { activeRoom } = route.params
+
+        try {
+            const roomRef = doc(db, 'rooms', roomId);
+            const isRoomExists = await getDoc(roomRef)
+            if (isRoomExists.exists()) {
+                const uid = activeRoom?.uid
+                const data = {
+                    ...user,
+                    date: serverTimestamp(),
+                    uid: uid,
+                    mic: activeRoom?.mic,
+                    video: activeRoom.video,
+                    owner: activeRoom.owner
+                }
+                setUser(data)
+                await updateDoc(roomRef, {
+                    [uid]: data
+                })
+                setActiveRoom({ ...data, roomId })
+                setAction("ok")
+                await AsyncStorage.setItem("activeRoom", JSON.stringify({ ...data, roomId }))
+            } else {
+                setNotFound(true)
             }
-        } else {
-            setNotFound(true)
+            setLoading(false)
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    useEffect(() => {
+        switch (action) {
+            case "join":
+                join()
+                break;
+            case "create":
+                createRoom()
+                break;
+            case "rejoin":
+                rejoin()
+                break;
+            case "ok":
+                console.log("Already joined or created Room or rejoined")
+                break;
+            default:
+                setNotFound(true)
+                break;
         }
     }, [])
 
@@ -200,18 +242,18 @@ export default function CreateCall({ navigation, route }) {
     };
     const handleLeave = async () => {
         try {
-            await AsyncStorage.removeItem("roomId")
-            setActiveRoomId("")
+            await AsyncStorage.removeItem("activeRoom")
+            setActiveRoom({})
             navigation.navigate("Home")
             if (roomId) {
                 const roomRef = doc(db, 'rooms', roomId);
-                if (participants.length === 1) {
-                    await deleteDoc(roomRef)
-                } else {
-                    await updateDoc(roomRef, {
-                        [user.uid]: deleteField()
-                    })
-                }
+                // if (participants.length === 1) {
+                //     await deleteDoc(roomRef)
+                // } else {
+                await updateDoc(roomRef, {
+                    [user.uid]: deleteField()
+                })
+                // }
             }
 
         } catch (error) {

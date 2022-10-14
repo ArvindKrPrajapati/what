@@ -8,7 +8,7 @@ import { deleteDoc, doc } from 'firebase/firestore'
 import { db } from '../config/firebase-config'
 
 export default function Menu({ setModalOpen, checkIsOwner, roomId, shareRoom }) {
-    const { theme, setActiveRoomId } = useContext(AuthContext)
+    const { theme, setActiveRoom } = useContext(AuthContext)
     const navigation = useNavigation()
     const { navigate } = useNavigation()
     const goChat = () => {
@@ -24,8 +24,8 @@ export default function Menu({ setModalOpen, checkIsOwner, roomId, shareRoom }) 
         )
     }
     const deleteRoom = async () => {
-        await AsyncStorage.removeItem("roomId")
-        setActiveRoomId("")
+        await AsyncStorage.removeItem("activeRoom")
+        setActiveRoom({})
         setModalOpen(false)
         navigation.navigate("Home")
         await deleteDoc(doc(db, 'rooms', roomId))

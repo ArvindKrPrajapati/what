@@ -4,15 +4,14 @@ import React, { createContext, useEffect, useState } from "react";
 export const AuthContext = createContext()
 export const AuthContextProvier = ({ children }) => {
     const [currentUser, setCurrentUser] = useState({})
-    const [roomId, setRoomId] = useState("")
+    const [activeRoom, setActiveRoom] = useState({})
     const [theme, setTheme] = useState()
     const [darkModeEnabled, setDarkModeEnabled] = useState(false)
     const getCurrentUser = async () => {
         const user = await AsyncStorage.getItem("currentUser")
         setCurrentUser(JSON.parse(user))
-        const r = await AsyncStorage.getItem("roomId")
-        setRoomId(r)
-        console.log(r);
+        const aR = await AsyncStorage.getItem("activeRoom")
+        setActiveRoom(JSON.parse(aR))
         const themeStatus = await AsyncStorage.getItem("darkModeEnabled")
         setDarkModeEnabled(JSON.parse(themeStatus)?.status)
     }
@@ -42,7 +41,15 @@ export const AuthContextProvier = ({ children }) => {
         changeTheme()
     }, [darkModeEnabled])
     return (
-        <AuthContext.Provider value={{ currentUser, active: roomId, setActiveRoomId: setRoomId, setCurrentUser, theme, setDarkModeEnabled, darkModeEnabled }}>
+        <AuthContext.Provider value={{
+            currentUser,
+            setCurrentUser,
+            theme,
+            setDarkModeEnabled,
+            darkModeEnabled,
+            activeRoom,
+            setActiveRoom
+        }}>
             {children}
         </AuthContext.Provider>
     )

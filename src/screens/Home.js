@@ -43,7 +43,9 @@ export default function Home({ navigation }) {
             <Header />
             <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 <View style={styles.btns}>
-                    <TouchableOpacity disabled={roomId ? true : false} onPress={() => { navigation.navigate("JoinCall") }} style={[styles.btn, { backgroundColor: 'green', opacity: roomId ? 0.3 : 1 }]}>
+                    <TouchableOpacity
+                        disabled={roomId ? true : false}
+                        onPress={() => { navigation.navigate("JoinCall") }} style={[styles.btn, { backgroundColor: 'green', opacity: roomId ? 0.3 : 1 }]}>
                         <Icon name='call' size={20} color='#efefef' />
                         <Text style={styles.btnText}>Join Call</Text>
                     </TouchableOpacity>

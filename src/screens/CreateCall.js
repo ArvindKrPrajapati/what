@@ -1,22 +1,25 @@
-import { View, Text, StyleSheet, Animated, BackHandler, StatusBar, Share, Modal, Dimensions, TouchableOpacity, FlatList, TouchableHighlight, ActivityIndicator, AppState } from 'react-native'
+import { View, Text, StyleSheet, Animated, StatusBar, Pressable, Modal, Dimensions, TouchableHighlight } from 'react-native'
 import React, { useRef, useState, useEffect, useContext } from 'react'
 import LinearGradient from "react-native-linear-gradient"
 const { height } = Dimensions.get("window")
 import HeaderControls from '../components/HeaderControls';
 import BottomControls from '../components/BottomControls';
 import { db } from "../config/firebase-config";
-import { doc, collection, addDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, deleteField, deleteDoc } from "firebase/firestore";
-import Icon from 'react-native-vector-icons/Ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import uuid from 'react-native-uuid';
+import { doc, collection, addDoc, onSnapshot, updateDoc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { AuthContext } from '../context/AuthContext';
 import Menu from '../components/Menu';
-import UserCard from '../components/UserCard';
-// import PipHandler, { usePipModeListener } from 'react-native-pip-android';
+import { RTCPeerConnection, mediaDevices, RTCIceCandidate, RTCSessionDescription } from 'react-native-webrtc';
+import RenderStream from '../components/RenderStream';
+const configuration = {
+    iceServers: [
+        {
+            urls: ['stun:stun.l.google.com:19302'],
+        },
+    ],
+};
+
 export default function CreateCall({ navigation, route }) {
-    // const [inPipMode, setInPipMode] = useState(usePipModeListener())
-    const [inPipMode, setInPipMode] = useState(false)
-    const { theme, setActiveRoom } = useContext(AuthContext)
+    const { theme } = useContext(AuthContext)
     const [user, setUser] = useState(route.params.user);
     const [action, setAction] = useState(route.params.action);
     const [notFound, setNotFound] = useState(false)
@@ -28,7 +31,6 @@ export default function CreateCall({ navigation, route }) {
     const [isMicMute, setIsMicMute] = useState(user.mic)
     const [isVideo, setIsVideo] = useState(user.video)
     const [roomId, setRoomId] = useState(route.params?.room);
-    const [participants, setParticipants] = useState([])
 
     const [loading, setLoading] = useState(true)
     const [modalOpen, setModalOpen] = useState(false)
@@ -39,114 +41,153 @@ export default function CreateCall({ navigation, route }) {
 
 
 
-    const startPip = () => {
-        // setInPipMode(true)
-        // PipHandler.enterPipMode(300, 214)
-    }
-
-    useEffect(() => {
-        const backHandler = BackHandler.addEventListener(
-            "hardwareBackPress",
-            startPip
-        );
-
-        return () => backHandler.remove();
-    }, []);
-
-
-    useEffect(() => {
-        const subscription = AppState.addEventListener("change", nextAppState => {
-            console.log(nextAppState);
-            if (nextAppState == "background") {
-                startPip()
-            }
-            if (nextAppState == "active") {
-                setInPipMode(false)
-            }
-        });
-
-        return () => {
-            subscription.remove();
+    const startLocalStream = async () => {
+        const isFront = true;
+        const devices = await mediaDevices.enumerateDevices();
+        const facing = isFront ? 'front' : 'environment';
+        const videoSourceId = devices.find(device => device.kind === 'videoinput' && device.facing === facing);
+        const facingMode = isFront ? 'user' : 'environment';
+        const constraints = {
+            audio: true,
+            video: {
+                mandatory: {
+                    minWidth: 200,
+                    minHeight: 200,
+                    minFrameRate: 30,
+                },
+                facingMode,
+                optional: videoSourceId ? [{ sourceId: videoSourceId }] : [],
+            },
         };
-    }, []);
+        const newStream = await mediaDevices.getUserMedia(constraints);
 
-
-
+        setLocalStream(newStream);
+        return newStream
+    };
 
     const join = async () => {
         try {
-            const roomRef = doc(db, 'rooms', roomId);
-            const isRoomExists = await getDoc(roomRef)
-            if (isRoomExists.exists()) {
-                const uid = uuid.v4()
-                const data = { ...user, date: serverTimestamp(), uid }
-                setUser(data)
-                await updateDoc(roomRef, {
-                    [uid]: data
+            setAction("ok")
+            const roomRef = doc(db, "rooms", roomId)
+            const roomSnap = await getDoc(roomRef)
+            if (roomSnap.exists()) {
+                const stream = await startLocalStream()
+                const localPC = new RTCPeerConnection(configuration)
+                stream.getTracks().forEach(track => {
+                    localPC.addTrack(track, [stream])
+                });
+                const calleeCandidateRef = collection(roomRef, "calleeCandidates")
+                const callerCandidateRef = collection(roomRef, "callerCandidates")
+
+                localPC.onicecandidate = async e => {
+                    if (!e.candidate) {
+                        return
+                    }
+                    await addDoc(calleeCandidateRef, e.candidate.toJSON())
+                }
+
+
+                localPC.ontrack = e => {
+                    console.log(e);
+                    if (e.streams && remoteStream !== e.streams[0]) {
+                        setRemoteStream(e.streams[0]);
+                    }
+                };
+                const roomSnapData = roomSnap.data()
+                const { offer } = roomSnapData
+                await localPC.setRemoteDescription(new RTCSessionDescription(offer));
+
+                const answer = await localPC.createAnswer();
+                await localPC.setLocalDescription(answer);
+
+                await updateDoc(roomRef, { answer })
+
+
+                setLoading(false)
+
+                onSnapshot(callerCandidateRef, (doc) => {
+                    doc.docChanges().forEach(async change => {
+                        if (change.type === 'added') {
+                            let data = change.doc.data();
+                            await localPC.addIceCandidate(new RTCIceCandidate(data));
+                        }
+                    })
                 })
-                setActiveRoom({ ...data, roomId })
-                setAction("ok")
-                await AsyncStorage.setItem("activeRoom", JSON.stringify({ ...data, roomId }))
+
+                setCachedLocalPC(localPC);
+
             } else {
                 setNotFound(true)
             }
             setLoading(false)
         } catch (error) {
-            console.log(error);
+            console.log(error)
         }
     }
+
 
     const createRoom = async () => {
-        const uid = uuid.v4()
-        const data = { ...user, date: serverTimestamp(), uid }
-        setUser(data)
         try {
-            const roomRef = collection(db, "rooms");
-            const res = await addDoc(roomRef, {
-                [uid]: data
-            })
-            setRoomId(res.id)
             setAction("ok")
-            setActiveRoom({ ...data, roomId: res.id })
-            await AsyncStorage.setItem("activeRoom", JSON.stringify({ ...data, roomId: res.id }))
-            setLoading(false)
-            setParticipants([data])
-        } catch (error) {
-            console.log(error);
-        }
-    }
+            const stream = await startLocalStream()
+            const localPC = new RTCPeerConnection(configuration);
 
-    const rejoin = async () => {
-        const { activeRoom } = route.params
+            stream.getTracks().forEach(track => {
+                localPC.addTrack(track, [stream])
+            });
 
-        try {
-            const roomRef = doc(db, 'rooms', roomId);
-            const isRoomExists = await getDoc(roomRef)
-            if (isRoomExists.exists()) {
-                const uid = activeRoom?.uid
-                const data = {
-                    ...user,
-                    date: serverTimestamp(),
-                    uid: uid,
-                    mic: activeRoom?.mic,
-                    video: activeRoom.video,
-                    owner: activeRoom.owner
+            const createRoomRef = collection(db, "rooms")
+            const res = await addDoc(createRoomRef, {})
+            setRoomId(res.id)
+            const roomRef = doc(db, "rooms", res.id)
+            const callerCandidateRef = collection(roomRef, "callerCandidates")
+            const calleeCandidateRef = collection(roomRef, "calleeCandidates")
+
+
+
+            localPC.ontrack = async e => {
+                console.log(e);
+                if (e.streams && remoteStream !== e.streams[0]) {
+                    setRemoteStream(e.streams[0]);
                 }
-                setUser(data)
-                await updateDoc(roomRef, {
-                    [uid]: data
-                })
-                setActiveRoom({ ...data, roomId })
-                setAction("ok")
-                await AsyncStorage.setItem("activeRoom", JSON.stringify({ ...data, roomId }))
-            } else {
-                setNotFound(true)
+            };
+
+            localPC.onicecandidate = async (e) => {
+                if (!e.candidate) {
+                    return
+                }
+                await addDoc(callerCandidateRef, e.candidate.toJSON());
             }
+
+
+            const offer = await localPC.createOffer();
+            await localPC.setLocalDescription(offer)
+            await setDoc(roomRef, { offer })
+            onSnapshot(roomRef, async (doc) => {
+                const data = doc.data()
+                if (!localPC.currentRemoteDescription && data?.answer) {
+                    const rtcSessionDescription = new RTCSessionDescription(data.answer);
+                    await localPC.setRemoteDescription(rtcSessionDescription);
+                }
+            })
+            console.log(res.id);
             setLoading(false)
+            onSnapshot(calleeCandidateRef, (doc) => {
+                doc.docChanges().forEach(async change => {
+                    if (change.type === 'added') {
+                        let data = change.doc.data();
+                        await localPC.addIceCandidate(new RTCIceCandidate(data));
+                    }
+                })
+            })
+            setCachedLocalPC(localPC);
         } catch (error) {
             console.log(error);
         }
     }
+
+
+
 
     useEffect(() => {
         switch (action) {
@@ -155,9 +196,6 @@ export default function CreateCall({ navigation, route }) {
                 break;
             case "create":
                 createRoom()
-                break;
-            case "rejoin":
-                rejoin()
                 break;
             case "ok":
                 console.log("Already joined or created Room or rejoined")
@@ -168,16 +206,7 @@ export default function CreateCall({ navigation, route }) {
         }
     }, [])
 
-    useEffect(() => {
-        if (roomId) {
-            var unsub = onSnapshot(doc(db, 'rooms', roomId), (doc) => {
-                doc.exists() ? setParticipants(Object.values(doc.data())) : setNotFound(true)
-            });
-            return () => {
-                unsub()
-            }
-        }
-    }, [])
+
 
     const fadeIn = () => {
         Animated.timing(fadeAnim, {
@@ -243,16 +272,14 @@ export default function CreateCall({ navigation, route }) {
     };
     const handleLeave = async () => {
         try {
-            await AsyncStorage.removeItem("activeRoom")
-            setActiveRoom({})
-            navigation.navigate("Home")
-            if (roomId) {
-                const roomRef = doc(db, 'rooms', roomId);
-                await updateDoc(roomRef, {
-                    [user.uid]: deleteField()
-                })
+            if (cachedLocalPC) {
+                cachedLocalPC.close();
             }
-
+            setLocalStream(null);
+            setRemoteStream(null);
+            setCachedLocalPC(null);
+            navigation.replace("Home")
+            await deleteDoc(doc(db, "rooms", roomId))
         } catch (error) {
             console.log(error);
         }
@@ -261,84 +288,32 @@ export default function CreateCall({ navigation, route }) {
 
 
     const toggleMic = async () => {
-        setParticipants(current =>
-            current.map(obj => {
-                if (obj.uid === user.uid) {
-                    return { ...obj, mic: !isMicMute };
-                }
-                return obj;
-            }),
-        );
-        setUser({ ...user, mic: !user.mic })
-        setIsMicMute(!isMicMute)
-        const roomRef = doc(db, 'rooms', roomId);
-        await updateDoc(roomRef, {
-            [user.uid + ".mic"]: !isMicMute
+        // if (!remoteStream) {
+        //     return;
+        //   }
+        localStream.getAudioTracks().forEach(async (track) => {
+            track.enabled = !track.enabled;
+            setUser({ ...user, mic: track.enabled })
+            setIsMicMute(track.enabled)
         })
-
     }
 
     const toggleVideo = async () => {
-        setParticipants(current =>
-            current.map(obj => {
-                if (obj.uid === user.uid) {
-                    return { ...obj, video: !isVideo };
-                }
-                return obj;
-            }),
-        );
-        setUser({ ...user, video: !user.video })
-        setIsVideo(!isVideo)
-        const roomRef = doc(db, 'rooms', roomId);
-        await updateDoc(roomRef, {
-            [user.uid + ".video"]: !isVideo
+        localStream.getVideoTracks().forEach(async (track) => {
+            track.enabled = !track.enabled;
+            setUser({ ...user, video: track.enabled })
+            setIsVideo(track.enabled)
         })
     }
 
-    const checkIsVideoTrue = () => {
-        const a = participants.find((o) => o.uid == user.uid)
-        return (a?.video);
-    }
-    const checkIsAudioTrue = () => {
-        const a = participants.find((o) => o.uid == user.uid)
-        return (a?.mic);
-    }
 
-    const checkIsOnwer = () => {
-        const a = participants.find((o) => o.uid == user.uid)
-        return (a?.owner);
-    }
 
-    const shareRoom = async () => {
-        try {
-            const result = await Share.share({
-                message:
-                    'Join My Room on What! \n Room ID : ' + roomId,
-            });
-            if (result.action === Share.sharedAction) {
-                if (result.activityType) {
-                    // shared with activity type of result.activityType
-                } else {
-                    // shared
-                }
-            } else if (result.action === Share.dismissedAction) {
-                // dismissed
-            }
-        } catch (error) {
-            alert(error.message);
-        }
-    }
+    const switchCamera = () => {
+        localStream.getVideoTracks().forEach(track => track._switchCamera());
+    };
 
-    const renderItem = ({ item }) => (
-        <UserCard
-            item={item}
-            participants={participants}
-            inPipMode={inPipMode}
-            user={user}
-            shareRoom={shareRoom}
-        />
-    )
-    const col = participants.length > 2 ? 2 : 0
+
+
     if (notFound) {
         return (
             <View style={[styles.container, { alignItems: 'center', backgroundColor: theme.colors.background }]}>
@@ -347,17 +322,14 @@ export default function CreateCall({ navigation, route }) {
         )
     }
 
-    // if pip mode
 
-    if (inPipMode) {
-        const item = participants[0]
-        return renderItem({ item })
-    }
+
+
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {
                 pushed ?
-                    <StatusBar backgroundColor={theme.colors.background} />
+                    <StatusBar hidden />
                     :
                     <StatusBar backgroundColor={theme.colors.gradientColor1} />
             }
@@ -366,47 +338,24 @@ export default function CreateCall({ navigation, route }) {
                     colors={[theme.colors.gradientColor1, theme.colors.gradientColor2, theme.colors.gradientColor3]}
                     style={styles.background}
                 >
-                    <HeaderControls />
+                    <HeaderControls switchCamera={switchCamera} />
                 </LinearGradient>
             </Animated.View>
-            {
-                loading ?
-                    <View style={{ alignItems: "center" }}>
-                        <ActivityIndicator size={50} color={theme.colors.textColor} />
-                        <TouchableOpacity onPress={handleLeave} style={{ padding: 8, borderRadius: 4, paddingHorizontal: 40, marginVertical: 14 }} >
-                            <Text style={{ color: theme.colors.textColor }}>Cancel</Text>
-                        </TouchableOpacity>
+            <Pressable onPress={pressing} style={pushed ? styles.fullPlayArea : styles.playarea}>
+
+                <View style={styles.rtcContainer}>
+                    <View style={styles.bigCard}>
+                        <RenderStream stream={localStream} type="local" user={user} loading={loading} />
                     </View>
-                    :
-                    (<TouchableHighlight underlayColor={theme.colors.background} onPress={pressing} style={pushed ? [styles.fullPlayArea, { padding: participants.length > 1 ? 5 : 0 }] : [styles.playarea, { padding: participants.length > 1 ? 5 : 0 }]}>
-
-                        <FlatList
-                            keyExtractor={(item, i) => i}
-                            contentContainerStyle={participants.length == 1 && { height: "100%" }}
-                            data={participants.slice(0, 4)}
-                            renderItem={renderItem}
-                            numColumns={col}
-                            key={col}
-                            showsHorizontalScrollIndicator={false}
-                            showsVerticalScrollIndicator={false}
-                            ListFooterComponent={() => {
-                                if (participants.length > 4) {
-                                    return (
-                                        <TouchableOpacity onPress={() => { navigation.navigate("Participants", { participants, roomId }) }} style={{ marginVertical: 10, padding: 10 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: "center" }}>
-                                                <Text style={{ color: theme.colors.textColor }}>{participants.length - 4} More Participants</Text>
-                                                <Icon name='chevron-forward' size={25} color={theme.colors.textColor} />
-                                            </View>
-                                        </TouchableOpacity>
-                                    )
-                                }
-                                return null
-                            }}
-                        />
-
-
-                    </TouchableHighlight>)
-            }
+                    {
+                        remoteStream && (
+                            <TouchableHighlight style={styles.smallCard}>
+                                <RenderStream stream={remoteStream} type="remote" user={user} loading={loading} />
+                            </TouchableHighlight>
+                        )
+                    }
+                </View>
+            </Pressable>
             <Animated.View style={[styles.bottomContainer, { bottom: bottomValue }]}>
                 <LinearGradient
                     colors={[theme.colors.gradientColor1, theme.colors.gradientColor2, theme.colors.gradientColor3]}
@@ -417,8 +366,8 @@ export default function CreateCall({ navigation, route }) {
                         toggleMic={toggleMic}
                         toggleVideo={toggleVideo}
                         handleLeave={handleLeave}
-                        video={checkIsVideoTrue}
-                        mic={checkIsAudioTrue}
+                        video={isVideo}
+                        mic={isMicMute}
                         setModalOpen={setModalOpen}
                     />
                 </LinearGradient>
@@ -433,9 +382,7 @@ export default function CreateCall({ navigation, route }) {
             >
                 <Menu
                     setModalOpen={setModalOpen}
-                    checkIsOwner={checkIsOnwer}
                     roomId={roomId}
-                    shareRoom={shareRoom}
                 />
             </Modal>
         </View>
@@ -479,4 +426,24 @@ const styles = StyleSheet.create({
     fullPlayArea: {
         height: '100%',
     },
+
+    rtcContainer: {
+        flex: 1
+    },
+    bigCard: {
+        backgroundColor: "black",
+        flex: 1,
+        borderRadius: 10,
+        overflow: "hidden",
+    },
+    smallCard: {
+        position: "absolute",
+        backgroundColor: "rgb(30,30,30)",
+        width: "35%",
+        height: "30%",
+        right: 10,
+        bottom: 10,
+        borderRadius: 10,
+        overflow: "hidden",
+    }
 })

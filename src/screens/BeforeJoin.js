@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
-import { Camera, useCameraDevices } from 'react-native-vision-camera'
+// import { Camera, useCameraDevices } from 'react-native-vision-camera'
 
 var t;
 export default function BeforeJoin({ route, navigation }) {
@@ -16,24 +16,24 @@ export default function BeforeJoin({ route, navigation }) {
     const [front, setFront] = useState(true)
     const { currentUser, theme, setCurrentUser } = useContext(AuthContext)
 
-    const devices = useCameraDevices()
-    const device = front ? devices.front : devices.back
+    // const devices = useCameraDevices()
+    // const device = front ? devices.front : devices.back
 
     const cameraRef = useRef(null)
     const switchCamera = () => {
         setFront(p => !p)
     }
-    const askCamerPermision = async () => {
-        const newCameraPermission = await Camera.requestCameraPermission()
-        if (newCameraPermission == "authorized") {
-            setVideo(true)
-        } else {
-            setVideo(false)
-        }
-    }
-    useEffect(() => {
-        askCamerPermision()
-    }, [])
+    // const askCamerPermision = async () => {
+    // const newCameraPermission = await Camera.requestCameraPermission()
+    // if (newCameraPermission == "authorized") {
+    //     setVideo(true)
+    // } else {
+    //     setVideo(false)
+    // }
+    // }
+    // useEffect(() => {
+    //     askCamerPermision()
+    // }, [])
     const join = () => {
         if (roomId) {
             const user = {
@@ -85,7 +85,7 @@ export default function BeforeJoin({ route, navigation }) {
                 {
                     video ? (
                         <View style={styles.videoContainer}>
-                            {
+                            {/* {
                                 device && (
                                     <Camera
                                         style={StyleSheet.absoluteFill}
@@ -95,7 +95,8 @@ export default function BeforeJoin({ route, navigation }) {
 
                                     />
                                 )
-                            }
+                            } */}
+
                         </View>
                     ) : (
                         <View style={[styles.videoContainer, { backgroundColor: "#202020" }]}>

@@ -15,16 +15,24 @@ export default function BottomControls({
     const { theme } = useContext(AuthContext)
     return (
         <View style={styles.btnContainer}>
-            <TouchableOpacity disabled={disabled} onPress={handleLeave} style={[styles.btn, { backgroundColor: 'red', borderWidth: 0 }]}>
+            <TouchableOpacity
+                // disabled={disabled} 
+                onPress={handleLeave} style={[styles.btn, { backgroundColor: 'red', borderWidth: 0 }]}>
                 <Icon name="call" size={24} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity disabled={disabled} onPress={toggleMic} style={[styles.btn, { borderColor: theme.colors.textColor }]}>
-                <Icon name={mic() ? "mic" : "mic-off"} size={24} color={theme.colors.textColor} />
+            <TouchableOpacity
+                // disabled={disabled} 
+                onPress={toggleMic} style={[styles.btn, { borderColor: theme.colors.textColor }]}>
+                <Icon name={mic ? "mic" : "mic-off"} size={24} color={theme.colors.textColor} />
             </TouchableOpacity>
-            <TouchableOpacity disabled={disabled} onPress={toggleVideo} style={[styles.btn, { borderColor: theme.colors.textColor }]}>
-                <Icon name={video() ? "videocam" : "videocam-off"} size={24} color={theme.colors.textColor} />
+            <TouchableOpacity
+                // disabled={disabled}
+                onPress={toggleVideo} style={[styles.btn, { borderColor: theme.colors.textColor }]}>
+                <Icon name={video ? "videocam" : "videocam-off"} size={24} color={theme.colors.textColor} />
             </TouchableOpacity>
-            <TouchableOpacity disabled={disabled} onPress={() => { setModalOpen(p => !p) }} style={[styles.btn, { borderColor: theme.colors.textColor }]}>
+            <TouchableOpacity
+                disabled={disabled}
+                onPress={() => { setModalOpen(p => !p) }} style={[styles.btn, { borderColor: theme.colors.textColor }]}>
                 <Icon name="more-vert" size={24} color={theme.colors.textColor} />
             </TouchableOpacity>
         </View>

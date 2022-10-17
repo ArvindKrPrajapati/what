@@ -1,0 +1,456 @@
+{
+    "isTrusted": false,
+    "streams": [
+        {
+            "active": true,
+            "_tracks": [
+                {
+                    "label": "",
+                    "_constraints": {},
+                    "_enabled": true,
+                    "_settings": {},
+                    "_muted": false,
+                    "_peerConnectionId": 0,
+                    "id": "1c611b79-69f1-4b2f-91ab-93186f26cadc",
+                    "kind": "audio",
+                    "remote": true,
+                    "readyState": "live"
+                },
+                {
+                    "label": "",
+                    "_constraints": {},
+                    "_enabled": true,
+                    "_settings": {},
+                    "_muted": false,
+                    "_peerConnectionId": 0,
+                    "id": "dd1ed9f1-1ac1-45fa-8c67-fc6b382fc381",
+                    "kind": "video",
+                    "remote": true,
+                    "readyState": "live"
+                }
+            ],
+            "id": "569322de-eb1e-4885-a6df-5be3bae58fd8",
+            "_reactTag": "3e9478a1-620d-477e-998a-7790a6b7779c"
+        }
+    ],
+    "transceiver": {
+        "_mid": "1",
+        "_peerConnectionId": 0,
+        "_id": "f041656f-e9c4-48b0-a1b3-c77d0be07820",
+        "_direction": "sendrecv",
+        "_currentDirection": "sendrecv",
+        "_stopped": false,
+        "_sender": {
+            "_track": {
+                "label": "",
+                "_constraints": {
+                    "facingMode": "user",
+                    "frameRate": 30,
+                    "height": 720,
+                    "width": 1280
+                },
+                "_enabled": true,
+                "_settings": {
+                    "frameRate": 30,
+                    "width": 1280,
+                    "height": 720
+                },
+                "_muted": false,
+                "id": "f041656f-e9c4-48b0-a1b3-c77d0be07820",
+                "kind": "video",
+                "remote": false,
+                "readyState": "live"
+            },
+            "_peerConnectionId": 0,
+            "_id": "f041656f-e9c4-48b0-a1b3-c77d0be07820",
+            "_rtpParameters": {
+                "codecs": [
+                    {
+                        "payloadType": 96,
+                        "clockRate": 90000,
+                        "mimeType": "VP8"
+                    },
+                    {
+                        "payloadType": 97,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=96"
+                    },
+                    {
+                        "payloadType": 98,
+                        "clockRate": 90000,
+                        "mimeType": "VP9"
+                    },
+                    {
+                        "payloadType": 99,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=98"
+                    },
+                    {
+                        "payloadType": 35,
+                        "clockRate": 90000,
+                        "mimeType": "AV1"
+                    },
+                    {
+                        "payloadType": 36,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=35"
+                    },
+                    {
+                        "payloadType": 125,
+                        "clockRate": 90000,
+                        "mimeType": "red"
+                    },
+                    {
+                        "payloadType": 124,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=125"
+                    },
+                    {
+                        "payloadType": 127,
+                        "clockRate": 90000,
+                        "mimeType": "ulpfec"
+                    }
+                ],
+                "headerExtensions": [
+                    {
+                        "id": 3,
+                        "uri": "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 2,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 8,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/color-space",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 5,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 6,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/video-content-type",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 7,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/video-timing",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 13,
+                        "uri": "urn:3gpp:video-orientation",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 4,
+                        "uri": "urn:ietf:params:rtp-hdrext:sdes:mid",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 11,
+                        "uri": "urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 10,
+                        "uri": "urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id",
+                        "encrypted": false
+                    }
+                ],
+                "rtcp": {
+                    "cname": "ojX66spOwQDTD4+r",
+                    "reducedSize": true
+                },
+                "transactionId": "6478d854-9d46-4a33-a60c-f80d4bd5acbe",
+                "encodings": [
+                    {
+                        "active": true,
+                        "rid": ""
+                    }
+                ]
+            }
+        },
+        "_receiver": {
+            "_track": {
+                "label": "",
+                "_constraints": {},
+                "_enabled": true,
+                "_settings": {},
+                "_muted": false,
+                "_peerConnectionId": 0,
+                "id": "dd1ed9f1-1ac1-45fa-8c67-fc6b382fc381",
+                "kind": "video",
+                "remote": true,
+                "readyState": "live"
+            },
+            "_id": "dd1ed9f1-1ac1-45fa-8c67-fc6b382fc381",
+            "_peerConnectionId": 0,
+            "_rtpParameters": {
+                "codecs": [
+                    {
+                        "payloadType": 96,
+                        "clockRate": 90000,
+                        "mimeType": "VP8"
+                    },
+                    {
+                        "payloadType": 97,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=96"
+                    },
+                    {
+                        "payloadType": 98,
+                        "clockRate": 90000,
+                        "mimeType": "VP9"
+                    },
+                    {
+                        "payloadType": 99,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=98"
+                    },
+                    {
+                        "payloadType": 35,
+                        "clockRate": 90000,
+                        "mimeType": "AV1"
+                    },
+                    {
+                        "payloadType": 36,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=35"
+                    },
+                    {
+                        "payloadType": 125,
+                        "clockRate": 90000,
+                        "mimeType": "red"
+                    },
+                    {
+                        "payloadType": 124,
+                        "clockRate": 90000,
+                        "mimeType": "rtx",
+                        "sdpFmtpLine": "apt=125"
+                    },
+                    {
+                        "payloadType": 127,
+                        "clockRate": 90000,
+                        "mimeType": "ulpfec"
+                    }
+                ],
+                "headerExtensions": [
+                    {
+                        "id": 3,
+                        "uri": "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 2,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 8,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/color-space",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 5,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 6,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/video-content-type",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 7,
+                        "uri": "http://www.webrtc.org/experiments/rtp-hdrext/video-timing",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 13,
+                        "uri": "urn:3gpp:video-orientation",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 4,
+                        "uri": "urn:ietf:params:rtp-hdrext:sdes:mid",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 11,
+                        "uri": "urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 10,
+                        "uri": "urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id",
+                        "encrypted": false
+                    },
+                    {
+                        "id": 14,
+                        "uri": "urn:ietf:params:rtp-hdrext:toffset",
+                        "encrypted": false
+                    }
+                ],
+                "rtcp": {
+                    "cname": "",
+                    "reducedSize": true
+                }
+            }
+        }
+    },
+    "receiver": {
+        "_track": {
+            "label": "",
+            "_constraints": {},
+            "_enabled": true,
+            "_settings": {},
+            "_muted": false,
+            "_peerConnectionId": 0,
+            "id": "dd1ed9f1-1ac1-45fa-8c67-fc6b382fc381",
+            "kind": "video",
+            "remote": true,
+            "readyState": "live"
+        },
+        "_id": "dd1ed9f1-1ac1-45fa-8c67-fc6b382fc381",
+        "_peerConnectionId": 0,
+        "_rtpParameters": {
+            "codecs": [
+                {
+                    "payloadType": 96,
+                    "clockRate": 90000,
+                    "mimeType": "VP8"
+                },
+                {
+                    "payloadType": 97,
+                    "clockRate": 90000,
+                    "mimeType": "rtx",
+                    "sdpFmtpLine": "apt=96"
+                },
+                {
+                    "payloadType": 98,
+                    "clockRate": 90000,
+                    "mimeType": "VP9"
+                },
+                {
+                    "payloadType": 99,
+                    "clockRate": 90000,
+                    "mimeType": "rtx",
+                    "sdpFmtpLine": "apt=98"
+                },
+                {
+                    "payloadType": 35,
+                    "clockRate": 90000,
+                    "mimeType": "AV1"
+                },
+                {
+                    "payloadType": 36,
+                    "clockRate": 90000,
+                    "mimeType": "rtx",
+                    "sdpFmtpLine": "apt=35"
+                },
+                {
+                    "payloadType": 125,
+                    "clockRate": 90000,
+                    "mimeType": "red"
+                },
+                {
+                    "payloadType": 124,
+                    "clockRate": 90000,
+                    "mimeType": "rtx",
+                    "sdpFmtpLine": "apt=125"
+                },
+                {
+                    "payloadType": 127,
+                    "clockRate": 90000,
+                    "mimeType": "ulpfec"
+                }
+            ],
+            "headerExtensions": [
+                {
+                    "id": 3,
+                    "uri": "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+                    "encrypted": false
+                },
+                {
+                    "id": 2,
+                    "uri": "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+                    "encrypted": false
+                },
+                {
+                    "id": 8,
+                    "uri": "http://www.webrtc.org/experiments/rtp-hdrext/color-space",
+                    "encrypted": false
+                },
+                {
+                    "id": 5,
+                    "uri": "http://www.webrtc.org/experiments/rtp-hdrext/playout-delay",
+                    "encrypted": false
+                },
+                {
+                    "id": 6,
+                    "uri": "http://www.webrtc.org/experiments/rtp-hdrext/video-content-type",
+                    "encrypted": false
+                },
+                {
+                    "id": 7,
+                    "uri": "http://www.webrtc.org/experiments/rtp-hdrext/video-timing",
+                    "encrypted": false
+                },
+                {
+                    "id": 13,
+                    "uri": "urn:3gpp:video-orientation",
+                    "encrypted": false
+                },
+                {
+                    "id": 4,
+                    "uri": "urn:ietf:params:rtp-hdrext:sdes:mid",
+                    "encrypted": false
+                },
+                {
+                    "id": 11,
+                    "uri": "urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id",
+                    "encrypted": false
+                },
+                {
+                    "id": 10,
+                    "uri": "urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id",
+                    "encrypted": false
+                },
+                {
+                    "id": 14,
+                    "uri": "urn:ietf:params:rtp-hdrext:toffset",
+                    "encrypted": false
+                }
+            ],
+            "rtcp": {
+                "cname": "",
+                "reducedSize": true
+            }
+        }
+    },
+    "track": {
+        "label": "",
+        "_constraints": {},
+        "_enabled": true,
+        "_settings": {},
+        "_muted": false,
+        "_peerConnectionId": 0,
+        "id": "dd1ed9f1-1ac1-45fa-8c67-fc6b382fc381",
+        "kind": "video",
+        "remote": true,
+        "readyState": "live"
+    }
+}

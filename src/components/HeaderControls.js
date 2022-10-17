@@ -3,7 +3,7 @@ import React, { useContext, useState } from 'react'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { AuthContext } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-export default function HeaderControls() {
+export default function HeaderControls({ switchCamera }) {
     const [speakerOn, setSpeakerOn] = useState(true);
     const { theme, darkModeEnabled, setDarkModeEnabled } = useContext(AuthContext)
     const handleToggleSpeaker = () => {
@@ -22,21 +22,26 @@ export default function HeaderControls() {
                 <Icon name="moon" size={22} color={theme.colors.textColor} />
             </TouchableOpacity>
             <Text style={[styles.title, { color: theme.colors.textColor, }]}>My Room</Text>
-            <TouchableOpacity onPress={handleToggleSpeaker}>
-                {speakerOn ? (
-                    <Icon
-                        name="volume-high"
-                        color={theme.colors.textColor}
-                        size={22}
-                    />
-                ) : (
-                    <Icon
-                        name="volume-mute"
-                        color={theme.colors.textColor}
-                        size={22}
-                    />
-                )}
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row" }}>
+                <TouchableOpacity onPress={handleToggleSpeaker}>
+                    {speakerOn ? (
+                        <Icon
+                            name="volume-high"
+                            color={theme.colors.textColor}
+                            size={22}
+                        />
+                    ) : (
+                        <Icon
+                            name="volume-mute"
+                            color={theme.colors.textColor}
+                            size={22}
+                        />
+                    )}
+                </TouchableOpacity>
+                <TouchableOpacity style={{ marginHorizontal: 5, marginLeft: 10 }} onPress={switchCamera}>
+                    <Icon name="camera" size={22} color={theme.colors.textColor} />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }

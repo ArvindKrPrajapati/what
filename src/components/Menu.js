@@ -1,34 +1,35 @@
-import { View, Text, Pressable, TouchableOpacity, StyleSheet, Alert } from 'react-native'
+import { View, Text, Pressable, TouchableOpacity, StyleSheet, Share } from 'react-native'
 import React, { useContext } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { AuthContext } from '../context/AuthContext'
 import { useNavigation } from '@react-navigation/native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { deleteDoc, doc } from 'firebase/firestore'
-import { db } from '../config/firebase-config'
 
-export default function Menu({ setModalOpen, checkIsOwner, roomId, shareRoom }) {
-    const { theme, setActiveRoom } = useContext(AuthContext)
+export default function Menu({ setModalOpen, roomId }) {
+    const { theme } = useContext(AuthContext)
     const navigation = useNavigation()
     const { navigate } = useNavigation()
     const goChat = () => {
         setModalOpen(p => !p)
         navigate("Chat", { roomId })
     }
-    const askToDelete = async () => {
-        Alert.alert("Exit App", "Do you want to end this call for All",
-            [
-                { text: 'End', onPress: deleteRoom, style: 'destructive' },
-                { text: 'Cancel' },
-            ]
-        )
-    }
-    const deleteRoom = async () => {
-        await AsyncStorage.removeItem("activeRoom")
-        setActiveRoom({})
-        setModalOpen(false)
-        navigation.navigate("Home")
-        await deleteDoc(doc(db, 'rooms', roomId))
+    const shareRoom = async () => {
+        try {
+            const result = await Share.share({
+                message:
+                    'Join My Room on What! \n Room ID : ' + roomId,
+            });
+            if (result.action === Share.sharedAction) {
+                if (result.activityType) {
+                    // shared with activity type of result.activityType
+                } else {
+                    // shared
+                }
+            } else if (result.action === Share.dismissedAction) {
+                // dismissed
+            }
+        } catch (error) {
+            alert(error.message);
+        }
     }
     return (
         <View style={styles.container}>
@@ -42,14 +43,6 @@ export default function Menu({ setModalOpen, checkIsOwner, roomId, shareRoom }) 
                     <Icon name='chat' color={theme.colors.textColor} size={25} />
                     <Text style={{ color: theme.colors.textColor, marginHorizontal: 15 }}>Chat Room</Text>
                 </TouchableOpacity>
-                {
-                    checkIsOwner() && (
-                        <TouchableOpacity onPress={askToDelete} style={styles.btn}>
-                            <Icon name='close' color="red" size={25} />
-                            <Text style={{ color: "red", marginHorizontal: 15 }}>Close Room for All</Text>
-                        </TouchableOpacity>
-                    )
-                }
             </View>
         </View>
     )
